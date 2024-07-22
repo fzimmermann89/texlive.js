@@ -95,6 +95,23 @@ var TeXLive = function(opt_workerPath) {
     );
   };
   pdftex.run = function(source_code) {
+    // UTF-8 support: conversation from ISO-8859-1 to UTF-8
+    var latin1Array = new TextEncoder().encode(str);
+    var utf8Array = new Uint8Array(latin1Array.length * 2);
+    var utf8Index = 0;
+    for (var i = 0; i < latin1Array.length; i++) {
+      var code = latin1Array[i];
+      if (code < 128) {
+        utf8Array[utf8Index++] = code;
+      } else {
+        utf8Array[utf8Index++] = 0xc0 | (code >> 6);
+        utf8Array[utf8Index++] = 0x80 | (code & 0x3f);
+      }
+    }
+    utf8Array.length = utf8Index;
+    var decoder = new TextDecoder('utf-8');
+    source_code = decoder.decode(utf8Array);
+
     var self=this;
     var commands;
     if(self.initialized)
